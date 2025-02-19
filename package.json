@@ -1,0 +1,90 @@
+{
+  "name": "extract-shader-uniforms",
+  "version": "0.1.0",
+  "author": {
+    "name": "Nikita Anatolievich Dudnikov",
+    "email": "nikdudnik@gmail.com",
+    "url": "https://github.com/Nek"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nek/extract-shader-uniforms.git"
+  },
+  "main": "./dist/extract-shader-uniforms.cjs",
+  "module": "./dist/extract-shader-uniforms.esm.js",
+  "jsdelivr": "./dist/extract-shader-uniforms.iife.js",
+  "exports": {
+    ".": {
+      "types": "./dist/extract-shader-uniforms.d.ts",
+      "require": "./dist/extract-shader-uniforms.cjs",
+      "import": "./dist/extract-shader-uniforms.esm.js"
+    }
+  },
+  "scripts": {
+    "dev": "vite --host",
+    "prebuild": "rm -rf dist/*",
+    "build": "tsc && vite build",
+    "postbuild": "dts-bundle-generator --config ./dts-bundle-generator.config.ts",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "format": "prettier . --write",
+    "upgrade": "upgradeps",
+    "release": "npm run build && np"
+  },
+  "bugs": {
+    "url": "https://github.com/Nek/extract-shader-uniforms/issues"
+  },
+  "description": "Extract shader uniforms as JS object and TS types from a GLSL shader code.",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE.md",
+    "CHANGELOG.md",
+    "src",
+    "package.json"
+  ],
+  "funding": [
+    {
+      "type": "individual",
+      "url": "https://support.example.com"
+    }
+  ],
+  "homepage": "https://github.com/username/repository#readme",
+  "keywords": [
+    "some",
+    "keywords"
+  ],
+  "license": "MIT",
+  "private": false,
+  "type": "module",
+  "types": "./dist/extract-shader-uniforms.d.ts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/extract-shader-uniforms.d.ts"
+      ]
+    }
+  },
+  "typings": "./dist/extract-shader-uniforms.d.ts",
+  "devDependencies": {
+    "@types/jsdom": "^21.1.7",
+    "@types/node": "^22.13.4",
+    "@vitest/coverage-v8": "^3.0.6",
+    "dts-bundle-generator": "^9.5.1",
+    "jsdom": "^26.0.0",
+    "lint-staged": "^15.4.3",
+    "np": "^10.2.0",
+    "prettier": "^3.5.1",
+    "terser": "^5.39.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3",
+    "upgradeps": "^2.0.7",
+    "vite": "^6.1.1",
+    "vitest": "^3.0.6"
+  },
+  "dependencies": {
+    "tree-sitter": "^0.21.1",
+    "tree-sitter-glsl": "^0.1.9",
+    "ts-pattern": "^5.6.2"
+  }
+}
