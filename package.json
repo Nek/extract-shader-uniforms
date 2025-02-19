@@ -1,6 +1,6 @@
 {
   "name": "extract-shader-uniforms",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "author": {
     "name": "Nikita Anatolievich Dudnikov",
     "email": "nikdudnik@gmail.com",
@@ -10,14 +10,14 @@
     "type": "git",
     "url": "git+https://github.com/Nek/extract-shader-uniforms.git"
   },
-  "main": "./dist/extract-shader-uniforms.cjs",
-  "module": "./dist/extract-shader-uniforms.esm.js",
-  "jsdelivr": "./dist/extract-shader-uniforms.iife.js",
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "exports": {
     ".": {
-      "types": "./dist/extract-shader-uniforms.d.ts",
-      "require": "./dist/extract-shader-uniforms.cjs",
-      "import": "./dist/extract-shader-uniforms.esm.js"
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
     }
   },
   "scripts": {
@@ -43,29 +43,24 @@
     "src",
     "package.json"
   ],
-  "funding": [
-    {
-      "type": "individual",
-      "url": "https://support.example.com"
-    }
-  ],
-  "homepage": "https://github.com/username/repository#readme",
+  "homepage": "https://github.com/Nek/extract-shader-uniforms#readme",
   "keywords": [
-    "some",
-    "keywords"
+    "webgl",
+    "glsl",
+    "shader",
+    "utility"
   ],
   "license": "MIT",
   "private": false,
-  "type": "module",
-  "types": "./dist/extract-shader-uniforms.d.ts",
+  "types": "./dist/index.d.ts",
   "typesVersions": {
     "*": {
       "*": [
-        "./dist/extract-shader-uniforms.d.ts"
+        "./dist/index.d.ts"
       ]
     }
   },
-  "typings": "./dist/extract-shader-uniforms.d.ts",
+  "typings": "./dist/index.d.ts",
   "devDependencies": {
     "@types/jsdom": "^21.1.7",
     "@types/node": "^22.13.4",

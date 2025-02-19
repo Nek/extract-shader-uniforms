@@ -2,7 +2,7 @@ const config = {
     entries: [
         {
             filePath: "./src/index.ts",
-            outFile: "./dist/extract-shader-uniforms.d.ts",
+            outFile: "./dist/index.d.ts",
             noCheck: false,
         },
     ],

@@ -38,7 +38,8 @@ export default defineConfig({
         terserOptions: {
             keep_classnames: true,
             keep_fnames: true,
-        }
+        },
+        ssr: true
     },
     plugins: [nodePolyfills()],
     test: {
