@@ -2,6 +2,7 @@
 import path from 'path';
 import { defineConfig } from 'vite';
 import packageJson from './package.json';
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 const getPackageName = () => {
     return packageJson.name;
@@ -39,9 +40,10 @@ export default defineConfig({
             keep_fnames: true,
         }
     },
+    plugins: [nodePolyfills()],
     test: {
         globals: true,
-        environment: "jsdom",
+        environment: "node",
     },
     resolve: {
         alias: [
