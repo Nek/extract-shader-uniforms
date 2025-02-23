@@ -194,24 +194,24 @@ export namespace GL {
                 ...Sampler,
             } as const;
 
+            type StructName<T extends string> = `${T}_Struct`;
+
             export type Basic = keyof typeof Basic;      
 
-            export type StructName = string & { __isStructName: true };
-
             export interface Array {
-                type: Basic | StructName;
+                type: Basic | StructName<string>;
                 size: [number, number?];
             }
 
-            export function isStructName(type: any): type is StructName {
-                return (type as StructName).__isStructName;
+            export function tagStructName<T extends string>(name: T): StructName<T> {
+                return name + '_Struct' as StructName<T>;
             }
 
-            export function tagStructName(name: string): StructName {
-                return name as StructName;
+            export function isStructName(type: string): type is StructName<string> {
+                return type.endsWith('_Struct') && type.length > 7;
             }
 
-            export function isArray(type: any): type is Array {
+            export function isArray(type: { type: Basic | StructName<string>, size: [number, number?] }): type is Array {
                 if (!isBasicDef(type?.type) && !isStructName(type?.type)) {
                     return false;
                 }
@@ -225,14 +225,13 @@ export namespace GL {
                 return true;
             }
 
-            export function inferArrayDef(type: Object): Array {
-                console.log("!!!!", type);
+            export function inferArrayDef(type: { type: Basic | StructName<string>, size: [number, number?] }): Array {
                 if (isArray(type)) {
                     return type;
                 }
                 throw new Error(`Invalid type: ${type}`);
             }
-            export type Struct = Map<string, Basic | Array | StructName>;
+            export type Struct = Map<string, Basic | Array | StructName<string>>;
         
             export function isBasicDef(type: any): type is Basic {
                 return Object.values(Basic).includes(type as Basic);
@@ -245,7 +244,7 @@ export namespace GL {
                 throw new Error(`Invalid type: ${type}`);
             }
 
-            export function inferStructNameOrBasicDef(type: any): StructName | Basic {
+            export function inferStructNameOrBasicDef(type: any): StructName<string> | Basic {
                 if (isStructName(type)) {
                     return type;
                 }

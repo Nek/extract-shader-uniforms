@@ -44,17 +44,18 @@ export function extractRelevantData(source: string) {
                 if (path.node.qualifiers?.[0]?.type === "keyword" && path.node.qualifiers?.[0]?.token === "uniform") {
                     const quantifiers = path.parentPath?.node.declarations[0].quantifier;
                     
-                    const arrayQuantifiers = [];
+                    let coll = [];
                     if (quantifiers?.length) {
                         for (const q of quantifiers) {
                             if (q.expression.type === "int_constant") {
                                 const quantifier = parseInt(q.expression.token, 10);
                                 if (quantifier > 1) {
-                                        arrayQuantifiers.push(quantifier);
-                                    }
+                                    coll.push(quantifier);
+                                }
                             }
                         }
                     }
+                    const arrayQuantifiers = [coll[0], coll[1] ?? undefined] as [number, number?];
                     const typeSpecifierType = path.node.specifier.specifier.type;
                     let uniformType = null;
                     switch (typeSpecifierType) {
@@ -89,8 +90,21 @@ export function extractRelevantData(source: string) {
                             try {
                                 const nestedStruct = structsData.get(uniformType);
                                 if (nestedStruct) {
-                                    uniformsData.set(uniformName, nestedStruct);
-                                    uniformDefs.set(uniformName, tagStructName(uniformType));
+                                    if (arrayQuantifiers.length) {
+                                        let arr;
+                                        if (arrayQuantifiers.length === 1) {
+                                            arr = Array(arrayQuantifiers[0]).fill(nestedStruct);
+                                        } else {
+                                            const nested = Array(arrayQuantifiers[1]).fill(nestedStruct);
+                                            arr = Array(arrayQuantifiers[0]).fill(nested);
+                                        }
+                                        uniformsData.set(uniformName, arr);
+                                        uniformDefs.set(uniformName, GL.Uniform.Defs.inferArrayDef({ type: tagStructName(uniformType), size: arrayQuantifiers }));
+                                    } else {
+                                        uniformsData.set(uniformName, nestedStruct);
+                                        uniformDefs.set(uniformName, tagStructName(uniformType));
+                                    }
+                                   
                                 }
                             } catch (e) {
                                 console.error(e);
