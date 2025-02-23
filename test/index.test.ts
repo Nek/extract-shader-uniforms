@@ -43,7 +43,6 @@ describe("extractRelevantData", () => {
             ],
         };
         const result = extractRelevantData(source);
-        console.log(result);
         expect(result.uniformsData).toEqual(expectedUniformsData);
     });
     test("should extract arrays from a shader", () => {
@@ -51,7 +50,6 @@ describe("extractRelevantData", () => {
         uniform vec2 u_resolution[2];
         `;
         const result = extractRelevantData(source);
-        console.log(result);
         expect(result.uniformsData).toEqual({
             u_resolution: [
                 GL.Uniform.Data.inferBasicData("vec2"),
@@ -73,7 +71,6 @@ describe("extractRelevantData", () => {
         uniform Light u_light[2];
         `;
         const result = extractRelevantData(source);
-        console.log(result);
         expect(result.uniformsData).toEqual({
             u_light: [
                 {

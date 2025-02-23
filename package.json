@@ -1,6 +1,6 @@
 {
   "name": "extract-shader-uniforms",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": {
     "name": "Nikita Anatolievich Dudnikov",
     "email": "nikdudnik@gmail.com",
