@@ -2,7 +2,7 @@
 import path from 'path';
 import { defineConfig } from 'vite';
 import packageJson from './package.json';
-import { nodePolyfills } from 'vite-plugin-node-polyfills'
+import dts from 'vite-plugin-dts'
 
 const getPackageName = () => {
     return packageJson.name;
@@ -17,9 +17,8 @@ const getPackageNameCamelCase = () => {
 };
 
 const fileName = {
-    es: `${getPackageName()}.esm.js`,
-    cjs: `${getPackageName()}.cjs`,
-    iife: `${getPackageName()}.iife.js`,
+    es: `index.mjs`,
+    umd: `index.js`,
 };
 
 const formats = Object.keys(fileName) as Array<keyof typeof fileName>;
@@ -38,10 +37,9 @@ export default defineConfig({
         terserOptions: {
             keep_classnames: true,
             keep_fnames: true,
-        },
-        ssr: true
+        }
     },
-    plugins: [nodePolyfills()],
+    plugins: [dts()],
     test: {
         globals: true,
         environment: "node",

@@ -1,0 +1,33 @@
+{
+    "type": "declarator_list",
+    "specified_type": {
+        "type": "fully_specified_type",
+        "qualifiers": [
+            {
+                "type": "keyword",
+                "token": "uniform",
+                "whitespace": " "
+            }
+        ],
+        "specifier": {
+            "type": "type_specifier",
+            "specifier": {
+                "type": "keyword",
+                "token": "float",
+                "whitespace": " "
+            },
+            "quantifier": null
+        }
+    },
+    "declarations": [
+        {
+            "type": "declaration",
+            "identifier": {
+                "type": "identifier",
+                "identifier": "u_time"
+            },
+            "quantifier": null
+        }
+    ],
+    "commas": []
+}

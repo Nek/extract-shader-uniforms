@@ -1,5 +1,231 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`extractShaderUniforms 1`] = `
-""
+exports[`extractShaderUniforms > should extract uniforms from a shader 1`] = `
+"{
+    "type": "program",
+    "wsStart": "\\n    ",
+    "program": [
+        {
+            "type": "declaration_statement",
+            "declaration": {
+                "type": "declarator_list",
+                "specified_type": {
+                    "type": "fully_specified_type",
+                    "qualifiers": [
+                        {
+                            "type": "keyword",
+                            "token": "uniform",
+                            "whitespace": " "
+                        }
+                    ],
+                    "specifier": {
+                        "type": "type_specifier",
+                        "specifier": {
+                            "type": "keyword",
+                            "token": "float",
+                            "whitespace": " "
+                        },
+                        "quantifier": null
+                    }
+                },
+                "declarations": [
+                    {
+                        "type": "declaration",
+                        "identifier": {
+                            "type": "identifier",
+                            "identifier": "u_time"
+                        },
+                        "quantifier": null
+                    }
+                ],
+                "commas": []
+            },
+            "semi": {
+                "type": "literal",
+                "literal": ";",
+                "whitespace": "\\n    "
+            }
+        },
+        {
+            "type": "declaration_statement",
+            "declaration": {
+                "type": "declarator_list",
+                "specified_type": {
+                    "type": "fully_specified_type",
+                    "qualifiers": [
+                        {
+                            "type": "keyword",
+                            "token": "uniform",
+                            "whitespace": " "
+                        }
+                    ],
+                    "specifier": {
+                        "type": "type_specifier",
+                        "specifier": {
+                            "type": "keyword",
+                            "token": "vec2",
+                            "whitespace": " "
+                        },
+                        "quantifier": null
+                    }
+                },
+                "declarations": [
+                    {
+                        "type": "declaration",
+                        "identifier": {
+                            "type": "identifier",
+                            "identifier": "u_resolution"
+                        },
+                        "quantifier": null
+                    }
+                ],
+                "commas": []
+            },
+            "semi": {
+                "type": "literal",
+                "literal": ";",
+                "whitespace": "\\n    "
+            }
+        },
+        {
+            "type": "declaration_statement",
+            "declaration": {
+                "type": "declarator_list",
+                "specified_type": {
+                    "type": "fully_specified_type",
+                    "qualifiers": [
+                        {
+                            "type": "keyword",
+                            "token": "uniform",
+                            "whitespace": " "
+                        }
+                    ],
+                    "specifier": {
+                        "type": "type_specifier",
+                        "specifier": {
+                            "type": "keyword",
+                            "token": "vec3",
+                            "whitespace": " "
+                        },
+                        "quantifier": null
+                    }
+                },
+                "declarations": [
+                    {
+                        "type": "declaration",
+                        "identifier": {
+                            "type": "identifier",
+                            "identifier": "u_color"
+                        },
+                        "quantifier": null
+                    }
+                ],
+                "commas": []
+            },
+            "semi": {
+                "type": "literal",
+                "literal": ";",
+                "whitespace": "\\n    "
+            }
+        },
+        {
+            "type": "declaration_statement",
+            "declaration": {
+                "type": "declarator_list",
+                "specified_type": {
+                    "type": "fully_specified_type",
+                    "qualifiers": [
+                        {
+                            "type": "keyword",
+                            "token": "uniform",
+                            "whitespace": " "
+                        }
+                    ],
+                    "specifier": {
+                        "type": "type_specifier",
+                        "specifier": {
+                            "type": "keyword",
+                            "token": "vec4",
+                            "whitespace": " "
+                        },
+                        "quantifier": null
+                    }
+                },
+                "declarations": [
+                    {
+                        "type": "declaration",
+                        "identifier": {
+                            "type": "identifier",
+                            "identifier": "u_position"
+                        },
+                        "quantifier": null
+                    }
+                ],
+                "commas": []
+            },
+            "semi": {
+                "type": "literal",
+                "literal": ";",
+                "whitespace": "\\n  "
+            }
+        }
+    ],
+    "scopes": [
+        {
+            "name": "global",
+            "bindings": {
+                "u_time": {
+                    "declaration": {
+                        "type": "identifier",
+                        "identifier": "u_time"
+                    },
+                    "references": [
+                        {
+                            "type": "identifier",
+                            "identifier": "u_time"
+                        }
+                    ]
+                },
+                "u_resolution": {
+                    "declaration": {
+                        "type": "identifier",
+                        "identifier": "u_resolution"
+                    },
+                    "references": [
+                        {
+                            "type": "identifier",
+                            "identifier": "u_resolution"
+                        }
+                    ]
+                },
+                "u_color": {
+                    "declaration": {
+                        "type": "identifier",
+                        "identifier": "u_color"
+                    },
+                    "references": [
+                        {
+                            "type": "identifier",
+                            "identifier": "u_color"
+                        }
+                    ]
+                },
+                "u_position": {
+                    "declaration": {
+                        "type": "identifier",
+                        "identifier": "u_position"
+                    },
+                    "references": [
+                        {
+                            "type": "identifier",
+                            "identifier": "u_position"
+                        }
+                    ]
+                }
+            },
+            "types": {},
+            "functions": {}
+        }
+    ]
+}"
 `;
