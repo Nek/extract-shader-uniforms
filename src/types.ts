@@ -1,97 +1,181 @@
-// export enum GLType {
-//     Bool = "bool",
-//     Int = "int",
-//     Uint = "uint",
-//     Float = "float",
-//     Vec2 = "vec2",
-//     Vec3 = "vec3",
-//     Vec4 = "vec4",
-//     // Bvec2 = 'bvec2', Not directly settable in WebGL
-//     // Bvec3 = 'bvec3', Converts to ivec3 in JavaScript
-//     // Bvec4 = 'bvec4', Converts to ivec4 in JavaScript
-//     Ivec2 = "ivec2",
-//     Ivec3 = "ivec3",
-//     Ivec4 = "ivec4",
-//     Uvec2 = "uvec2",
-//     Uvec3 = "uvec3",
-//     Uvec4 = "uvec4",
-//     Mat2 = "mat2",
-//     Mat3 = "mat3",
-//     Mat4 = "mat4",
-//     Mat2x2 = "mat2x2",
-//     Mat2x3 = "mat2x3",
-//     Mat2x4 = "mat2x4",
-//     Mat3x2 = "mat3x2",
-//     Mat3x3 = "mat3x3",
-//     Mat3x4 = "mat3x4",
-//     Mat4x2 = "mat4x2",
-//     Mat4x3 = "mat4x3",
-//     Mat4x4 = "mat4x4",
-//     Sampler2D = "sampler2D",
-//     Sampler3D = "sampler3D",
-//     SamplerCube = "samplerCube",
-//     Sampler2DArray = "sampler2DArray",
-//     SamplerCubeShadow = "samplerCubeShadow",
-//     Sampler2DShadow = "sampler2DShadow",
-//     Sampler2DArrayShadow = "sampler2DArrayShadow",
-//     Isampler2D = "isampler2D",
-//     Isampler3D = "isampler3D",
-//     IsamplerCube = "isamplerCube",
-//     Isampler2DArray = "isampler2DArray",
-//     Usampler2D = "usampler2D",
-//     Usampler3D = "usampler3D",
-//     UsamplerCube = "usamplerCube",
-//     Usampler2DArray = "usampler2DArray",
-// }
+export namespace GL {
+    enum SplDimension {
+        _2D = "2D",
+        _3D = "3D",
+        _Cube = "Cube",
+        _2DArray = "2DArray",
+        _CubeShadow = "CubeShadow",
+        _2DShadow = "2DShadow",
+        _2DArrayShadow = "2DArrayShadow",
+    }
 
-enum GLSamplerDimension {
-    _2D = "2D",
-    _3D = "3D",
-    _Cube = "Cube",
-    _2DArray = "2DArray",
-    _CubeShadow = "CubeShadow",
-    _2DShadow = "2DShadow",
-    _2DArrayShadow = "2DArrayShadow",
+    enum Scl {
+        Bool = "bool",
+        Int = "int",
+        Uint = "uint",
+        Float = "float",
+    }
+
+    type Pre<T extends Scl> = T extends Scl.Bool ? "b" : T extends Scl.Int ? "i" : T extends Scl.Uint ? "u" : "";
+
+    type Spl<T extends Scl, D extends SplDimension> = T extends Scl.Float
+        ? `sampler${D}`
+        : T extends Scl.Int | Scl.Uint
+          ? D extends SplDimension._CubeShadow | SplDimension._2DShadow | SplDimension._2DArrayShadow
+              ? never
+              : `${Pre<T>}sampler${D}`
+          : never;
+
+    type Vec<T extends Scl, N extends 2 | 3 | 4> = `${Pre<T>}vec${N}`;
+    type MatCols = 2 | 3 | 4;
+    type MatRows = 2 | 3 | 4 | undefined;
+    type Mat<COL extends MatCols, ROW extends MatRows> = ROW extends undefined ? `mat${COL}` : `mat${COL}x${ROW}`;
+
+    type Prp = Emb | Arr<Emb, number, number | undefined>;
+
+    type StcDef = {
+        [propName: string]: Prp;
+    };
+    type StcName = string & { __isStcName: true };
+    type StcsDict = Record<StcName, StcDef>;
+
+    type Emb = StcName | Scl | Spl<Scl, SplDimension> | Vec<Scl, 2 | 3 | 4> | Mat<MatCols, MatRows>;
+
+    type Arr<T extends Emb, X extends number, Y extends number | undefined> = (Y extends undefined
+        ? `[${X}]`
+        : `[${X}, ${Y}]`) & { __isArr: true; __type: T };
+
+    export namespace Uniforms {
+        const Scalar = {
+            bool: "bool",
+            int: "int",
+            uint: "uint",
+            float: "float",
+        } as const;
+
+        const Vector = {
+            vec2: "vec2",
+            vec3: "vec3",
+            vec4: "vec4",
+            bvec2: "bvec2",
+            bvec3: "bvec3",
+            bvec4: "bvec4",
+            ivec2: "ivec2",
+            ivec3: "ivec3",
+            ivec4: "ivec4",
+            uvec2: "uvec2",
+            uvec3: "uvec3",
+            uvec4: "uvec4",
+        } as const;
+
+        const Matrix = {
+            mat2: "mat2",
+            mat3: "mat3",
+            mat4: "mat4",
+            mat2x2: "mat2x2",
+            mat2x3: "mat2x3",
+            mat2x4: "mat2x4",
+            mat3x2: "mat3x2",
+            mat3x3: "mat3x3",
+            mat3x4: "mat3x4",
+            mat4x2: "mat4x2",
+            mat4x3: "mat4x3",
+            mat4x4: "mat4x4",
+        } as const;
+
+        const Sampler = {
+            sampler2D: "sampler2D",
+            sampler3D: "sampler3D",
+            samplerCube: "samplerCube",
+            sampler2DArray: "sampler2DArray",
+            samplerCubeShadow: "samplerCubeShadow",
+            sampler2DShadow: "sampler2DShadow",
+            sampler2DArrayShadow: "sampler2DArrayShadow",
+            isampler2D: "isampler2D",
+            isampler3D: "isampler3D",
+            isamplerCube: "isamplerCube",
+            isampler2DArray: "isampler2DArray",
+            usampler2D: "usampler2D",
+            usampler3D: "usampler3D",
+            usamplerCube: "usamplerCube",
+            usampler2DArray: "usampler2DArray",
+        } as const;
+
+        export const Basic = {
+            ...Scalar,
+            ...Vector,
+            ...Matrix,
+            ...Sampler,
+        } as const;
+
+        export type Basic = keyof typeof Basic;
+
+        export function isBasic(type: string): type is Basic {
+            return Object.values(Basic).includes(type as Basic);
+        }
+
+        export type Scope = Map<
+            string,
+            | keyof typeof Basic
+            | Scope
+            | Array1<keyof typeof Basic | Scope, number>
+            | Array2<keyof typeof Basic | Scope, number, number>
+        >;
+
+        export type Array1<T extends keyof typeof Basic | Scope, N extends number> = {
+            [index: number]: T;
+            length: N;
+        };
+
+        export type Array2<T extends keyof typeof Basic | Scope, N extends number, M extends number> = {
+            [index: number]: Array1<T, M>;
+            length: N;
+        };
+
+        export const Setters = {
+            [Basic.bool]: "uniform1i",
+            [Basic.int]: "uniform1i",
+            [Basic.uint]: "uniform1ui",
+            [Basic.float]: "uniform1f",
+            [Basic.vec2]: "uniform2f",
+            [Basic.vec3]: "uniform3f",
+            [Basic.vec4]: "uniform4f",
+            [Basic.bvec2]: "uniform2i",
+            [Basic.bvec3]: "uniform3i",
+            [Basic.bvec4]: "uniform4i",
+            [Basic.ivec2]: "uniform2i",
+            [Basic.ivec3]: "uniform3i",
+            [Basic.ivec4]: "uniform4i",
+            [Basic.uvec2]: "uniform2ui",
+            [Basic.uvec3]: "uniform3ui",
+            [Basic.uvec4]: "uniform4ui",
+            [Basic.mat2]: "uniformMatrix2fv",
+            [Basic.mat3]: "uniformMatrix3fv",
+            [Basic.mat4]: "uniformMatrix4fv",
+            [Basic.mat2x2]: "uniformMatrix2fv",
+            [Basic.mat2x3]: "uniformMatrix2fv",
+            [Basic.mat2x4]: "uniformMatrix2fv",
+            [Basic.mat3x2]: "uniformMatrix3fv",
+            [Basic.mat3x3]: "uniformMatrix3fv",
+            [Basic.mat3x4]: "uniformMatrix3fv",
+            [Basic.mat4x2]: "uniformMatrix4fv",
+            [Basic.mat4x3]: "uniformMatrix4fv",
+            [Basic.mat4x4]: "uniformMatrix4fv",
+            [Basic.sampler2D]: "uniform1i",
+            [Basic.sampler3D]: "uniform1i",
+            [Basic.samplerCube]: "uniform1i",
+            [Basic.sampler2DArray]: "uniform1i",
+            [Basic.samplerCubeShadow]: "uniform1i",
+            [Basic.sampler2DShadow]: "uniform1i",
+            [Basic.sampler2DArrayShadow]: "uniform1i",
+            [Basic.isampler2D]: "uniform1i",
+            [Basic.isampler3D]: "uniform1i",
+            [Basic.isamplerCube]: "uniform1i",
+            [Basic.isampler2DArray]: "uniform1i",
+            [Basic.usampler2D]: "uniform1ui",
+            [Basic.usampler3D]: "uniform1ui",
+            [Basic.usamplerCube]: "uniform1ui",
+            [Basic.usampler2DArray]: "uniform1ui",
+        } as const;
+    }
 }
-
-enum GLPrim {
-    Bool = "b",
-    Int = "i",
-    Uint = "u",
-    Float = "",
-}
-
-type GLSampler<T extends GLPrim, D extends GLSamplerDimension> = T extends GLPrim.Float
-    ? `sampler${D}`
-    : T extends GLPrim.Int | GLPrim.Uint
-      ? D extends GLSamplerDimension._CubeShadow | GLSamplerDimension._2DShadow | GLSamplerDimension._2DArrayShadow
-          ? never
-          : `${T}sampler${D}`
-      : never;
-
-type GLVec<T extends GLPrim, N extends 2 | 3 | 4> = `${T}vec${N}`;
-type MatCols = 2 | 3 | 4;
-type MatRows = 2 | 3 | 4 | undefined;
-type GLMat<COL extends MatCols, ROW extends MatRows> = ROW extends undefined ? `mat${COL}` : `mat${COL}x${ROW}`;
-
-type GLPropType = Embeddable | GLArray<Embeddable, number, number | undefined>;
-
-type GLPropName = string & { __isPropName: true };
-type GLStructDef = Record<GLPropName, GLPropType>;
-type GLStructName = string & { __isStructName: true };
-type GLStructsDict = Record<GLStructName, GLStructDef>;
-
-type Embeddable =
-    | GLStructName
-    | GLPrim
-    | GLSampler<GLPrim, GLSamplerDimension>
-    | GLVec<GLPrim, 2 | 3 | 4>
-    | GLMat<MatCols, MatRows>;
-
-type GLArray<T extends Embeddable, X extends number, Y extends number | undefined> = (Y extends undefined
-    ? `[${X}]`
-    : `[${X}, ${Y}]`) & { __isArray: true; __type: T };
-
-type UniformsDict = Record<string & { __isUniformId: true }, GLPropType>;
-
-type Concrete = GLArray<GLPrim.Float, 1, 1>;
