@@ -122,13 +122,9 @@ export namespace GL {
                 throw new Error(`Invalid type: ${type}`);
             }
 
-            export type Scope = Map<
-                string,
-                | keyof typeof Basic
-                | Scope
-                | Array1<keyof typeof Basic | Scope, number>
-                | Array2<keyof typeof Basic | Scope, number, number>
-            >;
+            export interface Scope {
+                [key: string]: keyof typeof Basic | Scope | Array1<keyof typeof Basic | Scope, number> | Array2<keyof typeof Basic | Scope, number, number>;
+            }
 
             export type Array1<T extends keyof typeof Basic | Scope, N extends number> = {
                 [index: number]: T;
@@ -201,7 +197,7 @@ export namespace GL {
 
             export interface Array {
                 type: Basic | StructName;
-                size: [number, number?];
+                size: [number] | [number, number];
             }
 
             export function tagStructName<T extends string>(name: T): StructName {
@@ -215,15 +211,11 @@ export namespace GL {
                 return typeof type === 'string' && type.length > 0;
             }
 
-            export function isArray(type: { type: Basic | StructName, size: [number, number?] }): type is Array {
+            export function isArray(type: { type: Basic | StructName, size: Size }): type is Array {
                 if (!isBasicDef(type?.type) && !isStructName(type?.type)) {
                     return false;
                 }
-                if (typeof type?.size?.[0] !== "number" || !Number.isInteger(type?.size?.[0]) || type?.size?.[0] < 2) {
-                    return false;
-                }
-                if ((typeof type?.size?.[1] !== "undefined" && (typeof type?.size?.[1] !== "number" || 
-                    !Number.isInteger(type?.size?.[1]) || type?.size?.[1] < 2))) {
+                if (!isSize(type?.size)) {
                     return false;
                 }
                 return true;
@@ -254,7 +246,9 @@ export namespace GL {
                 }
                 throw new Error(`Invalid Array: ${type}`);
             }
-            export type Struct = Map<string, Basic | Array | StructName>;
+            export interface Struct {
+                [key: string]: Basic | Array | StructName;
+            }
         
             export function isBasicDef(type: any): type is Basic {
                 return Object.values(Basic).includes(type as Basic);
@@ -278,8 +272,8 @@ export namespace GL {
             }
 
             export function isStructDef(type: any): type is Struct {
-                if (type instanceof Map) {
-                    for (const value of type.values()) {
+                if (typeof type === 'object' && type !== null && !Array.isArray(type)) {
+                    for (const value of Object.values(type as Struct)) {
                         if (!isBasicDef(value) && !isStructName(value) && !isArray(value)) {
                             return false;
                         }

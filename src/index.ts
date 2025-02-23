@@ -1,36 +1,46 @@
-import { parser } from "@shaderfrog/glsl-parser";
+import { parser, generate } from "@shaderfrog/glsl-parser";
 import { visit, type NodeVisitors } from "@shaderfrog/glsl-parser/ast";
-import { GL } from './types';
+import { GL } from "./types";
 
-const { inferBasicDef, tagStructName, inferSize } = GL.Uniform.Defs;
+const { inferBasicDef, tagStructName, inferSize, inferStructNameOrBasicDef } = GL.Uniform.Defs;
 
 export function extractRelevantData(source: string) {
-    const ast = parser.parse(source);
+    let ast = parser.parse(source);
+    const newSource = generate(ast);
+    ast = parser.parse(newSource);
 
-    const uniformDefs: GL.Uniform.Defs.Struct = new Map();
-    const uniformsData: GL.Uniform.Data.Scope = new Map();
-    const structDefs: Map<string, GL.Uniform.Defs.Struct> = new Map();
-    const structsData: Map<string, GL.Uniform.Data.Scope> = new Map();
+    const uniformDefs: GL.Uniform.Defs.Struct = {};
+    const uniformsData: GL.Uniform.Data.Scope = {};
+    const structDefs: Record<string, GL.Uniform.Defs.Struct> = {};
+    const structsData: Record<string, GL.Uniform.Data.Scope> = {};
 
-    const visitors: NodeVisitors = {
+    const structVisitors: NodeVisitors = {
         fully_specified_type: {
             enter: path => {
                 if (path.node.specifier.specifier.type === "struct") {
                     const name = path.node.specifier.specifier.typeName.identifier;
-                    const def: GL.Uniform.Defs.Struct = new Map();
-                    const data: GL.Uniform.Data.Scope = new Map();
+                    console.log("struct", name);
+                    const def: GL.Uniform.Defs.Struct = {};
+                    const data: GL.Uniform.Data.Scope = {};
                     for (const declaration of path.node.specifier.specifier.declarations) {
-                        if (declaration.declaration.specified_type.specifier.specifier.type === "keyword") {
-                            const structPropType = declaration.declaration.specified_type.specifier.specifier.token;
-                            const structPropId = declaration.declaration.declarations[0].identifier.identifier;
-                            def.set(structPropId, inferBasicDef(structPropType));
+                        let structPropId: string | undefined;
+                        let structPropType: string | undefined;
+                        if (declaration.declaration.specified_type.specifier.specifier.type === "type_name") {
+                            structPropType = declaration.declaration.specified_type.specifier.specifier.identifier;
+                            structPropId = declaration.declaration.declarations[0].identifier.identifier;
+                        } else if (declaration.declaration.specified_type.specifier.specifier.type === "keyword") {
+                            structPropType = declaration.declaration.specified_type.specifier.specifier.token;
+                            structPropId = declaration.declaration.declarations[0].identifier.identifier;
+                        }
+                        if (structPropId && structPropType) {
+                            def[structPropId] = inferStructNameOrBasicDef(structPropType);
                             if (GL.Uniform.Data.isBasicData(structPropType)) {
-                                data.set(structPropId, structPropType);
+                                data[structPropId] = structPropType;
                             } else {
                                 try {
-                                    const nestedStruct = structsData.get(structPropType);
+                                    const nestedStruct = structsData[structPropType];
                                     if (nestedStruct) {
-                                        data.set(structPropId, nestedStruct);
+                                        data[structPropId] = nestedStruct;
                                     }
                                 } catch (e) {
                                     console.error(e);
@@ -38,12 +48,19 @@ export function extractRelevantData(source: string) {
                             }
                         }
                     }
-                    structDefs.set(name, def);
-                    structsData.set(name, data);
+                    structDefs[name] = def;
+                    structsData[name] = data;
                 }
+            },
+        },
+    };
+
+    const uniformVisitors: NodeVisitors = {
+        fully_specified_type: {
+            enter: path => {
                 if (path.node.qualifiers?.[0]?.type === "keyword" && path.node.qualifiers?.[0]?.token === "uniform") {
                     const quantifiers = path.parentPath?.node.declarations[0].quantifier;
-                    
+
                     const arrayQuantifiers: [number] | [number, number] | number[] = [];
                     if (quantifiers?.length) {
                         for (const q of quantifiers) {
@@ -69,7 +86,7 @@ export function extractRelevantData(source: string) {
                     }
 
                     const uniformName = path.parentPath?.node.declarations[0].identifier.identifier;
-                    if (!uniformsData.has(uniformName)) {
+                    if (!uniformsData[uniformName]) {
                         if (GL.Uniform.Data.isBasicData(uniformType)) {
                             if (arrayQuantifiers.length) {
                                 let arr;
@@ -79,16 +96,23 @@ export function extractRelevantData(source: string) {
                                     const nested = Array(arrayQuantifiers[1]).fill(uniformType);
                                     arr = Array(arrayQuantifiers[0]).map(() => [...nested]);
                                 }
-                                uniformsData.set(uniformName, arr);
-                                console.log("inferArrayDef", { type: uniformType, size: arrayQuantifiers }, arrayQuantifiers);
-                                uniformDefs.set(uniformName, GL.Uniform.Defs.inferArrayDef({ type: uniformType, size: inferSize(arrayQuantifiers) }));
+                                uniformsData[uniformName] = arr;
+                                console.log(
+                                    "inferArrayDef",
+                                    { type: uniformType, size: arrayQuantifiers },
+                                    arrayQuantifiers
+                                );
+                                uniformDefs[uniformName] = GL.Uniform.Defs.inferArrayDef({
+                                    type: uniformType,
+                                    size: inferSize(arrayQuantifiers),
+                                });
                             } else {
-                                uniformsData.set(uniformName, uniformType);
-                                uniformDefs.set(uniformName, uniformType);
+                                uniformsData[uniformName] = uniformType;
+                                uniformDefs[uniformName] = uniformType;
                             }
                         } else {
                             try {
-                                const nestedStruct = structsData.get(uniformType);
+                                const nestedStruct = structsData[uniformType];
                                 if (nestedStruct) {
                                     if (arrayQuantifiers.length) {
                                         let arr;
@@ -98,13 +122,15 @@ export function extractRelevantData(source: string) {
                                             const nested = Array(arrayQuantifiers[1]).fill(nestedStruct);
                                             arr = Array(arrayQuantifiers[0]).fill(nested);
                                         }
-                                        uniformsData.set(uniformName, arr);
-                                        uniformDefs.set(uniformName, GL.Uniform.Defs.inferArrayDef({ type: tagStructName(uniformType), size: arrayQuantifiers }));
+                                        uniformsData[uniformName] = arr;
+                                        uniformDefs[uniformName] = GL.Uniform.Defs.inferArrayDef({
+                                            type: tagStructName(uniformType),
+                                            size: arrayQuantifiers,
+                                        });
                                     } else {
-                                        uniformsData.set(uniformName, nestedStruct);
-                                        uniformDefs.set(uniformName, tagStructName(uniformType));
+                                        uniformsData[uniformName] = nestedStruct;
+                                        uniformDefs[uniformName] = tagStructName(uniformType);
                                     }
-                                   
                                 }
                             } catch (e) {
                                 console.error(e);
@@ -116,7 +142,8 @@ export function extractRelevantData(source: string) {
         },
     };
 
-    visit(ast, visitors);
+    visit(ast, structVisitors);
+    visit(ast, uniformVisitors);
 
     return {
         structDefs,
