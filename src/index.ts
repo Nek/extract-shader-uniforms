@@ -2,7 +2,7 @@ import { parser } from "@shaderfrog/glsl-parser";
 import { visit, type NodeVisitors } from "@shaderfrog/glsl-parser/ast";
 import { GL } from './types';
 
-const { inferBasicDef, inferStructNameOrBasicDef } = GL.Uniform.Defs;
+const { inferBasicDef, tagStructName } = GL.Uniform.Defs;
 
 export function extractRelevantData(source: string) {
     const ast = parser.parse(source);
@@ -90,7 +90,7 @@ export function extractRelevantData(source: string) {
                                 const nestedStruct = structsData.get(uniformType);
                                 if (nestedStruct) {
                                     uniformsData.set(uniformName, nestedStruct);
-                                    uniformDefs.set(uniformName, inferStructNameOrBasicDef(uniformType));
+                                    uniformDefs.set(uniformName, tagStructName(uniformType));
                                 }
                             } catch (e) {
                                 console.error(e);

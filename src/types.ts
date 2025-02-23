@@ -196,7 +196,7 @@ export namespace GL {
 
             export type Basic = keyof typeof Basic;      
 
-            export type StructName = string & { __isStructName: boolean };
+            export type StructName = string & { __isStructName: true };
 
             export interface Array {
                 type: Basic | StructName;
@@ -205,6 +205,10 @@ export namespace GL {
 
             export function isStructName(type: any): type is StructName {
                 return (type as StructName).__isStructName;
+            }
+
+            export function tagStructName(name: string): StructName {
+                return name as StructName;
             }
 
             export function isArray(type: any): type is Array {
