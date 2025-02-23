@@ -1,6 +1,6 @@
 import { parser, generate } from "@shaderfrog/glsl-parser";
 import { visit, type NodeVisitors } from "@shaderfrog/glsl-parser/ast";
-import { GL, Size } from "./types";
+import { GL } from "./types";
 
 const { tagStructName, inferSize, inferStructNameOrBasicDef } = GL.Uniform.Defs;
 
@@ -10,14 +10,23 @@ export function extractRelevantData(source: string) {
     const globalVars = Object.keys(bindings);
     const structNames = Object.keys(types);
 
-    function getDataForTypeDef(typeSpec) {
-        //TODO: implement arrays
-        const [typeName, ...size] = typeSpec;
-        if (structNames.includes(typeName)) {
-            return structsData[typeName];
-        } else {
-            return typeSpec;
+    function normalizeTypeSpec(
+        typeSpec: string | [string, ...([number] | [number, number])]
+    ): [string, [] | [number] | [number, number]] {
+        const [typeName, ...size] = typeof typeSpec === "string" ? [typeSpec] : typeSpec;
+        return [typeName, size];
+    }
+
+    function getDataForTypeDef(typeSpec: string | [string, ...([number] | [number, number])]): any {
+        const [typeName, size] = normalizeTypeSpec(typeSpec);
+        const tn = structNames.includes(typeName) ? structsData[typeName] : typeName;
+        if (size.length === 1) {
+            return Array(size[0]).fill(tn);
+        } else if (size.length === 2) {
+            const block = Array(size[1]).fill(tn);
+            return Array(size[0]).fill(block);
         }
+        return tn;
     }
 
     // console.log(topLevelDefs, structs);
@@ -93,7 +102,7 @@ export function extractRelevantData(source: string) {
                             case 2:
                                 return [memberTypeName, s[0], s[1]] as [string, number, number];
                             default:
-                                return [memberTypeName] as [string];
+                                return memberTypeName as string;
                         }
                     })(memberSize);
                     if (memberId) {
@@ -101,7 +110,7 @@ export function extractRelevantData(source: string) {
                         membersData[memberId] = getDataForTypeDef(typeDef);
                     }
                 }
-                structsData[id] = membersData
+                structsData[id] = membersData;
                 structDefs[id] = membersDefs;
             },
         },
@@ -170,7 +179,7 @@ export function extractRelevantData(source: string) {
                         case 2:
                             return [typeName, s[0], s[1]] as [string, number, number];
                         default:
-                            return [typeName] as [string];
+                            return typeName as string;
                     }
                 })(size);
                 uniformDefs[id] = typeDef;

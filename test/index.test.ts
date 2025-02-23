@@ -59,7 +59,7 @@ describe("extractRelevantData", () => {
             ],
         });
     });
-    test.only("should extract structs from a shader", () => {
+    test("should extract structs from a shader", () => {
         const source = `
         struct Camera {
             vec3 position;
