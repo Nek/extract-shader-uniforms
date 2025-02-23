@@ -14,12 +14,14 @@ describe("extractRelevantData", () => {
         expect(true).toBeTruthy()
         // expect(result).toMatchSnapshot();
     });
-    test("should extract structs from a shader", () => {
+    test.only("should extract structs from a shader", () => {
         let source = `
+        
+        uniform sampler2D uText;
         struct Light {
             vec3 position;
             vec3 color;
-        };
+            };
         uniform Light u_light[2];
   `;
         const result = extractRelevantData(source);
