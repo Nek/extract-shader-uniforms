@@ -24,8 +24,6 @@
     "dev": "vite --host",
     "prebuild": "rm -rf dist/*",
     "build": "tsc && vite build",
-    "build:glsl-grammar": "cd node_modules/tree-sitter-glsl && npx tree-sitter-cli build --wasm && mv tree-sitter-glsl.wasm ../../dist",
-    "postbuild": "npm run build:glsl-grammar",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "format": "prettier . --write",

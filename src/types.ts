@@ -54,52 +54,6 @@ const Sampler = {
 } as const;
 
 export namespace GL {
-    enum SplDimension {
-        _2D = "2D",
-        _3D = "3D",
-        _Cube = "Cube",
-        _2DArray = "2DArray",
-        _CubeShadow = "CubeShadow",
-        _2DShadow = "2DShadow",
-        _2DArrayShadow = "2DArrayShadow",
-    }
-
-    enum Scl {
-        Bool = "bool",
-        Int = "int",
-        Uint = "uint",
-        Float = "float",
-    }
-
-    type Pre<T extends Scl> = T extends Scl.Bool ? "b" : T extends Scl.Int ? "i" : T extends Scl.Uint ? "u" : "";
-
-    type Spl<T extends Scl, D extends SplDimension> = T extends Scl.Float
-        ? `sampler${D}`
-        : T extends Scl.Int | Scl.Uint
-          ? D extends SplDimension._CubeShadow | SplDimension._2DShadow | SplDimension._2DArrayShadow
-              ? never
-              : `${Pre<T>}sampler${D}`
-          : never;
-
-    type Vec<T extends Scl, N extends 2 | 3 | 4> = `${Pre<T>}vec${N}`;
-    type MatCols = 2 | 3 | 4;
-    type MatRows = 2 | 3 | 4 | undefined;
-    type Mat<COL extends MatCols, ROW extends MatRows> = ROW extends undefined ? `mat${COL}` : `mat${COL}x${ROW}`;
-
-    type Prp = Emb | Arr<Emb, number, number | undefined>;
-
-    type StcDef = {
-        [propName: string]: Prp;
-    };
-    type StcName = string & { __isStcName: true };
-    type StcsDict = Record<StcName, StcDef>;
-
-    type Emb = StcName | Scl | Spl<Scl, SplDimension> | Vec<Scl, 2 | 3 | 4> | Mat<MatCols, MatRows>;
-
-    type Arr<T extends Emb, X extends number, Y extends number | undefined> = (Y extends undefined
-        ? `[${X}]`
-        : `[${X}, ${Y}]`) & { __isArr: true; __type: T };
-
     export namespace Uniform {
         export namespace Data {
             export const Basic = {

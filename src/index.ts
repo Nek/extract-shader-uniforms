@@ -119,7 +119,7 @@ export function extractRelevantData(source: string) {
                                         uniformsData[uniformName] = arr;
                                         uniformDefs[uniformName] = GL.Uniform.Defs.inferArrayDef({
                                             type: tagStructName(uniformType),
-                                            size: arrayQuantifiers,
+                                            size: inferSize(arrayQuantifiers),
                                         });
                                     } else {
                                         uniformsData[uniformName] = nestedStruct;
