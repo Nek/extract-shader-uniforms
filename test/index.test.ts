@@ -20,38 +20,30 @@ describe("extractRelevantData", () => {
         };
         uniform Light u_light;
   `;
-        const expected: GL.Uniforms.Scope = {
-            u_light: {
-                position: "vec3",
-                color: "vec3",
-            },
-        };
-
-        const source2 = `
+        const result = extractRelevantData(source);
+        expect(result).toMatchSnapshot();
+    });
+    test.only("should extract structs from a shader", () => {
+        const source = `
         struct Light {
             vec3 position;
             vec3 color;
         };
         uniform Light u_light[3];
   `;
-        // type Vec3 =
-        const expected2: GL.Uniforms.Scope = {
-            u_light: [
-                {
-                    position: "vec3",
-                    color: "vec3",
-                },
-                {
-                    position: "vec3",
-                    color: "vec3",
-                },
-                {
-                    position: "vec3",
-                    color: "vec3",
-                },
-            ],
-        };
+        const nestedLight = new Map([
+            ["color", GL.Uniform.Data.inferBasicData("vec3")],
+            ["position", GL.Uniform.Data.inferBasicData("vec3")],
+        ]);
+        const expectedUniformsData: GL.Uniform.Data.Scope = new Map([
+            ["u_light", [
+                nestedLight,
+                nestedLight,
+                nestedLight,
+            ]],
+        ]);
         const result = extractRelevantData(source);
-        expect(result).toMatchSnapshot();
+        console.log(result);
+        expect(result.uniformsData).toEqual(expectedUniformsData);
     });
 });
