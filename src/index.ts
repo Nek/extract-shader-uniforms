@@ -1,143 +1,189 @@
 import { parser, generate } from "@shaderfrog/glsl-parser";
 import { visit, type NodeVisitors } from "@shaderfrog/glsl-parser/ast";
-import { GL } from "./types";
+import { GL, Size } from "./types";
 
 const { tagStructName, inferSize, inferStructNameOrBasicDef } = GL.Uniform.Defs;
 
 export function extractRelevantData(source: string) {
     let ast = parser.parse(source);
-    const newSource = generate(ast);
-    ast = parser.parse(newSource);
+    const { bindings, types } = ast.scopes[0];
+    const globalVars = Object.keys(bindings);
+    const structNames = Object.keys(types);
 
-    const uniformDefs: GL.Uniform.Defs.Struct = {};
-    const uniformsData: GL.Uniform.Data.Scope = {};
-    const structDefs: Record<string, GL.Uniform.Defs.Struct> = {};
-    const structsData: Record<string, GL.Uniform.Data.Scope> = {};
+    function getDataForTypeDef(typeSpec) {
+        //TODO: implement arrays
+        const [typeName, ...size] = typeSpec;
+        if (structNames.includes(typeName)) {
+            return structsData[typeName];
+        } else {
+            return typeSpec;
+        }
+    }
 
-    const structVisitors: NodeVisitors = {
-        fully_specified_type: {
-            enter: path => {
-                if (path.node.specifier.specifier.type === "struct") {
-                    const name = path.node.specifier.specifier.typeName.identifier;
-                    const def: GL.Uniform.Defs.Struct = {};
-                    const data: GL.Uniform.Data.Scope = {};
-                    for (const declaration of path.node.specifier.specifier.declarations) {
-                        let structPropId: string | undefined;
-                        let structPropType: string | undefined;
-                        if (declaration.declaration.specified_type.specifier.specifier.type === "type_name") {
-                            structPropType = declaration.declaration.specified_type.specifier.specifier.identifier;
-                            structPropId = declaration.declaration.declarations[0].identifier.identifier;
-                        } else if (declaration.declaration.specified_type.specifier.specifier.type === "keyword") {
-                            structPropType = declaration.declaration.specified_type.specifier.specifier.token;
-                            structPropId = declaration.declaration.declarations[0].identifier.identifier;
-                        }
-                        if (structPropId && structPropType) {
-                            def[structPropId] = inferStructNameOrBasicDef(structPropType);
-                            if (GL.Uniform.Data.isBasicData(structPropType)) {
-                                data[structPropId] = structPropType;
-                            } else {
-                                try {
-                                    const nestedStruct = structsData[structPropType];
-                                    if (nestedStruct) {
-                                        data[structPropId] = nestedStruct;
-                                    }
-                                } catch (e) {
-                                    console.error(e);
+    // console.log(topLevelDefs, structs);
+    // console.log(bindings, types)
+    // const newSource = generate(ast);
+    // ast = parser.parse(newSource);
+
+    const uniformDefs: Record<string, any> = {};
+    const uniformsData: Record<string, any> = {};
+    const structDefs: Record<string, any> = {};
+    const structsData: Record<string, a> = {};
+
+    // const uniformDefs: GL.Uniform.Defs.Struct = {};
+    // const uniformsData: GL.Uniform.Data.Scope = {};
+    // const structsData: Record<string, GL.Uniform.Data.Scope> = {};
+    // const structDefs: Record<string, GL.Uniform.Defs.Struct> = {};
+
+    const structDefVisitors: NodeVisitors = {
+        type_name: {
+            enter(p) {
+                const id = p.node.identifier;
+                if (!structNames.includes(id)) {
+                    p.skip();
+                    return;
+                }
+                if (structDefs[id]) {
+                    p.skip();
+                    return;
+                }
+                if (p.parent?.type !== "struct") {
+                    p.skip();
+                    return;
+                }
+                let membersDefs: Record<string, any> = {};
+                let membersData: Record<string, any> = {};
+                for (const member of p.parent.declarations) {
+                    let memberTypeName;
+                    const typeSpec = member.declaration.specified_type.specifier.specifier;
+                    if (typeSpec.type === "keyword") {
+                        memberTypeName = typeSpec.token;
+                    }
+                    if (typeSpec.type === "type_name") {
+                        memberTypeName = typeSpec.identifier;
+                    }
+                    if (!memberTypeName) {
+                        break;
+                    }
+                    let memberId;
+                    const memberSize = [];
+                    for (const innerD of member.declaration.declarations) {
+                        memberId = innerD.identifier.identifier;
+                        if (innerD.quantifier) {
+                            for (const q of innerD.quantifier) {
+                                if (q.type === "array_specifier" && q.expression.type === "int_constant") {
+                                    memberSize.push(parseInt(q.expression.token, 10));
                                 }
+                                if (memberSize.length === 2) {
+                                    break;
+                                }
+                            }
+                            if (memberSize[1] < 2) {
+                                memberSize.pop();
+                            }
+                            if (memberSize[0] < 2) {
+                                memberSize.pop();
                             }
                         }
                     }
-                    structDefs[name] = def;
-                    structsData[name] = data;
+                    const typeDef = (function (s) {
+                        switch (s.length) {
+                            case 1:
+                                return [memberTypeName, s[0]] as [string, number];
+                            case 2:
+                                return [memberTypeName, s[0], s[1]] as [string, number, number];
+                            default:
+                                return [memberTypeName] as [string];
+                        }
+                    })(memberSize);
+                    if (memberId) {
+                        membersDefs[memberId] = typeDef;
+                        membersData[memberId] = getDataForTypeDef(typeDef);
+                    }
                 }
+                structsData[id] = membersData
+                structDefs[id] = membersDefs;
             },
         },
     };
 
-    const uniformVisitors: NodeVisitors = {
-        fully_specified_type: {
-            enter: path => {
-                if (path.node.qualifiers?.[0]?.type === "keyword" && path.node.qualifiers?.[0]?.token === "uniform") {
-                    const quantifiers = path.parentPath?.node.declarations[0].quantifier;
+    const uniformDefVisitors: NodeVisitors = {
+        identifier: {
+            enter(p) {
+                const id = p.node.identifier;
+                if (!globalVars.includes(id)) {
+                    p.skip();
+                    return;
+                }
+                const declarator = p.parentPath?.parent;
+                if (declarator?.type !== "declarator_list") {
+                    p.skip();
+                    return;
+                }
+                const keywordNode2 = declarator.specified_type.qualifiers?.[0];
+                if (keywordNode2?.type !== "keyword" || keywordNode2?.token !== "uniform") {
+                    p.skip();
+                    return;
+                }
 
-                    const arrayQuantifiers: [number] | [number, number] | number[] = [];
-                    if (quantifiers?.length) {
-                        for (const q of quantifiers) {
-                            if (q.expression.type === "int_constant") {
-                                const quantifier = parseInt(q.expression.token, 10);
-                                if (quantifier > 1) {
-                                    arrayQuantifiers.push(quantifier);
-                                }
+                const typeNode = declarator.specified_type.specifier.specifier;
+
+                const typeName = (() => {
+                    if (typeNode.type === "keyword") {
+                        return typeNode.token;
+                    }
+                    if (typeNode.type === "type_name") {
+                        return typeNode.identifier;
+                    }
+                    return;
+                })();
+
+                if (!typeName) {
+                    p.skip();
+                    return;
+                }
+
+                const size = [];
+                if (p.parent?.type === "declaration") {
+                    const quantifier = p.parent?.quantifier;
+                    if (quantifier) {
+                        for (const q of quantifier) {
+                            if (q.type === "array_specifier" && q.expression.type === "int_constant") {
+                                size.push(parseInt(q.expression.token, 10));
+                            }
+                            if (size.length === 2) {
+                                break;
                             }
                         }
+                        if (size[1] < 2) {
+                            size.pop();
+                        }
+                        if (size[0] < 2) {
+                            size.pop();
+                        }
                     }
-                    const typeSpecifierType = path.node.specifier.specifier.type;
-                    let uniformType = null;
-                    switch (typeSpecifierType) {
-                        case "type_name":
-                            uniformType = path.node.specifier.specifier.identifier;
-                            break;
-                        case "keyword":
-                            uniformType = path.node.specifier.specifier.token;
-                            break;
+                }
+                const typeDef = (function (s) {
+                    switch (s.length) {
+                        case 1:
+                            return [typeName, s[0]] as [string, number];
+                        case 2:
+                            return [typeName, s[0], s[1]] as [string, number, number];
                         default:
-                            return;
+                            return [typeName] as [string];
                     }
-
-                    const uniformName = path.parentPath?.node.declarations[0].identifier.identifier;
-                    if (!uniformsData[uniformName]) {
-                        if (GL.Uniform.Data.isBasicData(uniformType)) {
-                            if (arrayQuantifiers.length) {
-                                let arr;
-                                if (arrayQuantifiers.length === 1) {
-                                    arr = Array(arrayQuantifiers[0]).fill(uniformType);
-                                } else {
-                                    const nested = Array(arrayQuantifiers[1]).fill(uniformType);
-                                    arr = Array(arrayQuantifiers[0]).map(() => [...nested]);
-                                }
-                                uniformsData[uniformName] = arr;
-                                uniformDefs[uniformName] = GL.Uniform.Defs.inferArrayDef({
-                                    type: uniformType,
-                                    size: inferSize(arrayQuantifiers),
-                                });
-                            } else {
-                                uniformsData[uniformName] = uniformType;
-                                uniformDefs[uniformName] = uniformType;
-                            }
-                        } else {
-                            try {
-                                const nestedStruct = structsData[uniformType];
-                                if (nestedStruct) {
-                                    if (arrayQuantifiers.length) {
-                                        let arr;
-                                        if (arrayQuantifiers.length === 1) {
-                                            arr = Array(arrayQuantifiers[0]).fill(nestedStruct);
-                                        } else {
-                                            const nested = Array(arrayQuantifiers[1]).fill(nestedStruct);
-                                            arr = Array(arrayQuantifiers[0]).fill(nested);
-                                        }
-                                        uniformsData[uniformName] = arr;
-                                        uniformDefs[uniformName] = GL.Uniform.Defs.inferArrayDef({
-                                            type: tagStructName(uniformType),
-                                            size: inferSize(arrayQuantifiers),
-                                        });
-                                    } else {
-                                        uniformsData[uniformName] = nestedStruct;
-                                        uniformDefs[uniformName] = tagStructName(uniformType);
-                                    }
-                                }
-                            } catch (e) {
-                                console.error(e);
-                            }
-                        }
-                    }
-                }
+                })(size);
+                uniformDefs[id] = typeDef;
+                uniformsData[id] = getDataForTypeDef(typeDef);
             },
         },
     };
 
-    visit(ast, structVisitors);
-    visit(ast, uniformVisitors);
+    visit(ast, structDefVisitors);
+    visit(ast, uniformDefVisitors);
+
+    console.log(structDefs, uniformDefs);
+    console.log(structsData, uniformsData);
 
     return {
         structDefs,
