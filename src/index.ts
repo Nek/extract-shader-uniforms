@@ -2,7 +2,7 @@ import { parser } from "@shaderfrog/glsl-parser";
 import { visit, type NodeVisitors } from "@shaderfrog/glsl-parser/ast";
 import { GL } from './types';
 
-const { inferBasicDef, tagStructName } = GL.Uniform.Defs;
+const { inferBasicDef, tagStructName, inferSize } = GL.Uniform.Defs;
 
 export function extractRelevantData(source: string) {
     const ast = parser.parse(source);
@@ -44,18 +44,17 @@ export function extractRelevantData(source: string) {
                 if (path.node.qualifiers?.[0]?.type === "keyword" && path.node.qualifiers?.[0]?.token === "uniform") {
                     const quantifiers = path.parentPath?.node.declarations[0].quantifier;
                     
-                    let coll = [];
+                    const arrayQuantifiers: [number] | [number, number] | number[] = [];
                     if (quantifiers?.length) {
                         for (const q of quantifiers) {
                             if (q.expression.type === "int_constant") {
                                 const quantifier = parseInt(q.expression.token, 10);
                                 if (quantifier > 1) {
-                                    coll.push(quantifier);
+                                    arrayQuantifiers.push(quantifier);
                                 }
                             }
                         }
                     }
-                    const arrayQuantifiers = [coll[0], coll[1] ?? undefined] as [number, number?];
                     const typeSpecifierType = path.node.specifier.specifier.type;
                     let uniformType = null;
                     switch (typeSpecifierType) {
@@ -81,7 +80,8 @@ export function extractRelevantData(source: string) {
                                     arr = Array(arrayQuantifiers[0]).map(() => [...nested]);
                                 }
                                 uniformsData.set(uniformName, arr);
-                                uniformDefs.set(uniformName, GL.Uniform.Defs.inferArrayDef({ type: uniformType, size: arrayQuantifiers }));
+                                console.log("inferArrayDef", { type: uniformType, size: arrayQuantifiers }, arrayQuantifiers);
+                                uniformDefs.set(uniformName, GL.Uniform.Defs.inferArrayDef({ type: uniformType, size: inferSize(arrayQuantifiers) }));
                             } else {
                                 uniformsData.set(uniformName, uniformType);
                                 uniformDefs.set(uniformName, uniformType);

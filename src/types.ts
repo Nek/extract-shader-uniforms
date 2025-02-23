@@ -194,24 +194,28 @@ export namespace GL {
                 ...Sampler,
             } as const;
 
-            type StructName<T extends string> = `${T}_Struct`;
+            interface StructName extends String {
+            }
 
             export type Basic = keyof typeof Basic;      
 
             export interface Array {
-                type: Basic | StructName<string>;
+                type: Basic | StructName;
                 size: [number, number?];
             }
 
-            export function tagStructName<T extends string>(name: T): StructName<T> {
-                return name + '_Struct' as StructName<T>;
+            export function tagStructName<T extends string>(name: T): StructName {
+                if (isStructName(name)) {
+                    return name;
+                }
+                throw new Error(`Invalid StructName: ${name}`);
             }
 
-            export function isStructName(type: string): type is StructName<string> {
-                return type.endsWith('_Struct') && type.length > 7;
+            export function isStructName(type: any): type is StructName {
+                return typeof type === 'string' && type.length > 0;
             }
 
-            export function isArray(type: { type: Basic | StructName<string>, size: [number, number?] }): type is Array {
+            export function isArray(type: { type: Basic | StructName, size: [number, number?] }): type is Array {
                 if (!isBasicDef(type?.type) && !isStructName(type?.type)) {
                     return false;
                 }
@@ -225,13 +229,32 @@ export namespace GL {
                 return true;
             }
 
-            export function inferArrayDef(type: { type: Basic | StructName<string>, size: [number, number?] }): Array {
+            export type Size = [number] | [number, number];
+
+            export function isSize(type: any): type is Size {
+                if (Array.isArray(type) && type.length === 1 && typeof type[0] === "number" && Number.isInteger(type[0]) && type[0] > 1) {
+                    return true;
+                }
+                if (Array.isArray(type) && type.length === 2 && typeof type[0] === "number" && typeof type[1] === "number" && Number.isInteger(type[0]) && Number.isInteger(type[1]) && type[0] > 1 && type[1] > 1) {
+                    return true;
+                }
+                return false;
+            }
+
+            export function inferSize(type: any): Size {
+                if (isSize(type)) {
+                    return type;
+                }
+                throw new Error(`Invalid Size: ${type}`);
+            }
+
+            export function inferArrayDef(type: { type: Basic | StructName, size: Size }): Array {
                 if (isArray(type)) {
                     return type;
                 }
-                throw new Error(`Invalid type: ${type}`);
+                throw new Error(`Invalid Array: ${type}`);
             }
-            export type Struct = Map<string, Basic | Array | StructName<string>>;
+            export type Struct = Map<string, Basic | Array | StructName>;
         
             export function isBasicDef(type: any): type is Basic {
                 return Object.values(Basic).includes(type as Basic);
@@ -241,17 +264,17 @@ export namespace GL {
                 if (isBasicDef(type)) {
                     return type;
                 }
-                throw new Error(`Invalid type: ${type}`);
+                throw new Error(`Invalid Basic: ${type}`);
             }
 
-            export function inferStructNameOrBasicDef(type: any): StructName<string> | Basic {
+            export function inferStructNameOrBasicDef(type: any): StructName | Basic {
                 if (isStructName(type)) {
                     return type;
                 }
                 if (isBasicDef(type)) {
                     return type;
                 }
-                throw new Error(`Invalid type: ${type}`);
+                throw new Error(`Neither StructName nor BasicDef: ${type}`);
             }
 
             export function isStructDef(type: any): type is Struct {
@@ -270,7 +293,7 @@ export namespace GL {
                 if (isStructDef(type)) {
                     return type;
                 }
-                throw new Error(`Invalid type: ${type}`);
+                throw new Error(`Invalid StructDef: ${type}`);
             }
         }
     }
