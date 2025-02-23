@@ -1,5 +1,18 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`extractRelevantData > should extract arrays from a shader 1`] = `
+{
+  "structDefs": Map {},
+  "structsData": Map {},
+  "uniformDefs": Map {
+    "u_resolution" => "vec2",
+  },
+  "uniformsData": Map {
+    "u_resolution" => "vec2",
+  },
+}
+`;
+
 exports[`extractRelevantData > should extract primitive types from a shader 1`] = `
 {
   "structDefs": Map {},

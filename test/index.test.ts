@@ -18,12 +18,12 @@ describe("extractRelevantData", () => {
             vec3 position;
             vec3 color;
         };
-        uniform Light u_light;
+        uniform Light u_light[2];
   `;
         const result = extractRelevantData(source);
         expect(result).toMatchSnapshot();
     });
-    test.only("should extract structs from a shader", () => {
+    test("should extract structs from a shader", () => {
         const source = `
         struct Light {
             vec3 position;
@@ -45,5 +45,18 @@ describe("extractRelevantData", () => {
         const result = extractRelevantData(source);
         console.log(result);
         expect(result.uniformsData).toEqual(expectedUniformsData);
+    });
+    test("should extract arrays from a shader", () => {
+        const source = `
+        uniform vec2 u_resolution[2];
+        `;
+        const result = extractRelevantData(source);
+        console.log(result);
+        expect(result.uniformsData).toEqual(new Map([
+            ["u_resolution", [
+                GL.Uniform.Data.inferBasicData("vec2"),
+                GL.Uniform.Data.inferBasicData("vec2"),
+            ]],
+        ]));
     });
 });

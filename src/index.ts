@@ -42,17 +42,16 @@ export function extractRelevantData(source: string) {
                     structsData.set(name, data);
                 }
                 if (path.node.qualifiers?.[0]?.type === "keyword" && path.node.qualifiers?.[0]?.token === "uniform") {
-                    const quantifier = path.parentPath?.node.declarations[0].quantifier;
+                    const quantifiers = path.parentPath?.node.declarations[0].quantifier;
+                    
                     const arrayQuantifiers = [];
-                    if (quantifier.length) {
-                        for (const q of quantifier) {
-                            if (q.type === "array_quantifier") {
-                                if (q.expression.type === "int_constant") {
-                                    const quantifier = parseInt(q.expression.token, 10);
-                                    if (quantifier > 1) {
+                    if (quantifiers?.length) {
+                        for (const q of quantifiers) {
+                            if (q.expression.type === "int_constant") {
+                                const quantifier = parseInt(q.expression.token, 10);
+                                if (quantifier > 1) {
                                         arrayQuantifiers.push(quantifier);
                                     }
-                                }
                             }
                         }
                     }
@@ -81,6 +80,7 @@ export function extractRelevantData(source: string) {
                                     arr = Array(arrayQuantifiers[0]).map(() => [...nested]);
                                 }
                                 uniformsData.set(uniformName, arr);
+                                uniformDefs.set(uniformName, GL.Uniform.Defs.inferArrayDef({ type: uniformType, size: arrayQuantifiers }));
                             } else {
                                 uniformsData.set(uniformName, uniformType);
                                 uniformDefs.set(uniformName, uniformType);

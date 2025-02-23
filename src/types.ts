@@ -200,7 +200,7 @@ export namespace GL {
 
             export interface Array {
                 type: Basic | StructName;
-                size: number | [number, number];
+                size: [number, number?];
             }
 
             export function isStructName(type: any): type is StructName {
@@ -215,9 +215,6 @@ export namespace GL {
                 if (!isBasicDef(type?.type) && !isStructName(type?.type)) {
                     return false;
                 }
-                if (typeof type?.size !== "number" || !Number.isInteger(type?.size) || type?.size < 2) {
-                    return false;
-                }
                 if (typeof type?.size?.[0] !== "number" || !Number.isInteger(type?.size?.[0]) || type?.size?.[0] < 2) {
                     return false;
                 }
@@ -228,6 +225,13 @@ export namespace GL {
                 return true;
             }
 
+            export function inferArrayDef(type: Object): Array {
+                console.log("!!!!", type);
+                if (isArray(type)) {
+                    return type;
+                }
+                throw new Error(`Invalid type: ${type}`);
+            }
             export type Struct = Map<string, Basic | Array | StructName>;
         
             export function isBasicDef(type: any): type is Basic {
