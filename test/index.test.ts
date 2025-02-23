@@ -11,10 +11,9 @@ describe("extractRelevantData", () => {
             float testVar;
         `;
         const result = extractRelevantData(source);
-        expect(true).toBeTruthy()
-        // expect(result).toMatchSnapshot();
+        expect(result).toMatchSnapshot();
     });
-    test.only("should extract structs from a shader", () => {
+    test("should extract structs from a shader", () => {
         let source = `
         
         uniform sampler2D uText;
@@ -55,9 +54,7 @@ describe("extractRelevantData", () => {
         `;
         const result = extractRelevantData(source);
         expect(result.uniformsData).toEqual({
-            u_resolution: [
-                GL.Uniform.Data.inferBasicData("vec2"),
-                GL.Uniform.Data.inferBasicData("vec2"),
+            u_resolution: ["vec2", "vec2"
             ],
         });
     });
@@ -75,43 +72,28 @@ describe("extractRelevantData", () => {
         uniform Light u_light[2];
         `;
         const result = extractRelevantData(source);
-        expect(true).toBeTruthy()
-        return
+
+        console.log(JSON.stringify(result, null, 4))
+
         expect(result.uniformsData).toEqual({
             u_light: [
                 {
-                    color: GL.Uniform.Data.inferBasicData("vec3"),
-                    position: GL.Uniform.Data.inferBasicData("vec3"),
                     camera: {
-                        color: GL.Uniform.Data.inferBasicData("vec3"),
-                        position: GL.Uniform.Data.inferBasicData("vec3"),
+                        color: "vec3",
+                        position: "vec3",
                     },
+                    color: "vec3",
+                    position: ["vec3", "vec3"],
                 },
                 {
-                    color: GL.Uniform.Data.inferBasicData("vec3"),
-                    position: GL.Uniform.Data.inferBasicData("vec3"),
+                    color: "vec3",
+                    position: ["vec3", "vec3"],
                     camera: {
-                        color: GL.Uniform.Data.inferBasicData("vec3"),
-                        position: GL.Uniform.Data.inferBasicData("vec3"),
+                        color: "vec3",
+                        position: "vec3",
                     },
                 },
             ],
         });
     });
-    test("Should parse comments into AST", () => {
-        const source = `
-        struct Camera {
-            vec3 position;
-            vec3 color;
-        };
-        struct Light {
-            Camera camera;
-            vec3 position;
-            vec3 color;
-        };
-        #ui {min: 1, max: 4, step: 0.2}
-        uniform Light u_light[2];
-        `
-    })
-    
 });

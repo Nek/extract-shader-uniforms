@@ -1,5 +1,37 @@
 // Bun Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`extractRelevantData should extract primitive types from a shader 1`] = `
+{
+  "structDefs": {},
+  "structsData": {},
+  "uniformDefs": {
+    "u_color": [
+      "vec3",
+      2,
+      2,
+    ],
+    "u_position": "vec4",
+    "u_resolution": "vec2",
+    "u_time": "float",
+  },
+  "uniformsData": {
+    "u_color": [
+      [
+        "vec3",
+        "vec3",
+      ],
+      [
+        "vec3",
+        "vec3",
+      ],
+    ],
+    "u_position": "vec4",
+    "u_resolution": "vec2",
+    "u_time": "float",
+  },
+}
+`;
+
 exports[`extractRelevantData should extract structs from a shader 1`] = `
 {
   "structDefs": {

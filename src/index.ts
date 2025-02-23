@@ -1,8 +1,5 @@
-import { parser, generate } from "@shaderfrog/glsl-parser";
+import { parser } from "@shaderfrog/glsl-parser";
 import { visit, type NodeVisitors } from "@shaderfrog/glsl-parser/ast";
-import { GL } from "./types";
-
-const { tagStructName, inferSize, inferStructNameOrBasicDef } = GL.Uniform.Defs;
 
 export function extractRelevantData(source: string) {
     let ast = parser.parse(source);
@@ -21,7 +18,8 @@ export function extractRelevantData(source: string) {
         const [typeName, size] = normalizeTypeSpec(typeSpec);
         const tn = structNames.includes(typeName) ? structsData[typeName] : typeName;
         if (size.length === 1) {
-            return Array(size[0]).fill(tn);
+            const a = Array(size[0]).fill(tn)
+            return a;
         } else if (size.length === 2) {
             const block = Array(size[1]).fill(tn);
             return Array(size[0]).fill(block);
@@ -29,20 +27,10 @@ export function extractRelevantData(source: string) {
         return tn;
     }
 
-    // console.log(topLevelDefs, structs);
-    // console.log(bindings, types)
-    // const newSource = generate(ast);
-    // ast = parser.parse(newSource);
-
     const uniformDefs: Record<string, any> = {};
     const uniformsData: Record<string, any> = {};
     const structDefs: Record<string, any> = {};
-    const structsData: Record<string, a> = {};
-
-    // const uniformDefs: GL.Uniform.Defs.Struct = {};
-    // const uniformsData: GL.Uniform.Data.Scope = {};
-    // const structsData: Record<string, GL.Uniform.Data.Scope> = {};
-    // const structDefs: Record<string, GL.Uniform.Defs.Struct> = {};
+    const structsData: Record<string, any> = {};
 
     const structDefVisitors: NodeVisitors = {
         type_name: {
@@ -190,9 +178,6 @@ export function extractRelevantData(source: string) {
 
     visit(ast, structDefVisitors);
     visit(ast, uniformDefVisitors);
-
-    console.log(structDefs, uniformDefs);
-    console.log(structsData, uniformsData);
 
     return {
         structDefs,
