@@ -64,13 +64,12 @@
   "typings": "./dist/index.d.ts",
   "devDependencies": {
     "@types/jsdom": "^21.1.7",
-    "@types/node": "^22.13.4",
-    "@types/three": "^0.173.0",
+    "@types/node": "^22.13.5",
     "@vitest/coverage-v8": "^3.0.6",
     "jsdom": "^26.0.0",
     "lint-staged": "^15.4.3",
     "np": "^10.2.0",
-    "prettier": "^3.5.1",
+    "prettier": "^3.5.2",
     "terser": "^5.39.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3",
@@ -81,10 +80,6 @@
     "vitest": "^3.0.6"
   },
   "dependencies": {
-    "@shaderfrog/glsl-parser": "^5.4.1",
-    "three": "^0.173.0",
-    "tree-sitter-glsl": "^0.1.9",
-    "ts-pattern": "^5.6.2",
-    "web-tree-sitter": "^0.25.2"
+    "@shaderfrog/glsl-parser": "^5.4.1"
   }
 }

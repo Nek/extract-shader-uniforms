@@ -19,7 +19,6 @@ export function extractRelevantData(source: string) {
             enter: path => {
                 if (path.node.specifier.specifier.type === "struct") {
                     const name = path.node.specifier.specifier.typeName.identifier;
-                    console.log("struct", name);
                     const def: GL.Uniform.Defs.Struct = {};
                     const data: GL.Uniform.Data.Scope = {};
                     for (const declaration of path.node.specifier.specifier.declarations) {
@@ -97,11 +96,6 @@ export function extractRelevantData(source: string) {
                                     arr = Array(arrayQuantifiers[0]).map(() => [...nested]);
                                 }
                                 uniformsData[uniformName] = arr;
-                                console.log(
-                                    "inferArrayDef",
-                                    { type: uniformType, size: arrayQuantifiers },
-                                    arrayQuantifiers
-                                );
                                 uniformDefs[uniformName] = GL.Uniform.Defs.inferArrayDef({
                                     type: uniformType,
                                     size: inferSize(arrayQuantifiers),
