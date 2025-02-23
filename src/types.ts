@@ -54,19 +54,16 @@ enum GLSamplerDimension {
     _2DArrayShadow = "2DArrayShadow",
 }
 
-enum GLType {
+enum GLPrim {
     Bool = "b",
     Int = "i",
     Uint = "u",
     Float = "",
 }
 
-// type GLPrim = GLType.Bool | GLType.Int | GLType.Uint | GLType.Float;
-type GLPrim = GLType.Float | GLType.Int | GLType.Uint;
-
-type GLSampler<T extends GLPrim, D extends GLSamplerDimension> = T extends GLType.Float
+type GLSampler<T extends GLPrim, D extends GLSamplerDimension> = T extends GLPrim.Float
     ? `sampler${D}`
-    : T extends GLType.Int | GLType.Uint
+    : T extends GLPrim.Int | GLPrim.Uint
       ? D extends GLSamplerDimension._CubeShadow | GLSamplerDimension._2DShadow | GLSamplerDimension._2DArrayShadow
           ? never
           : `${T}sampler${D}`
@@ -75,31 +72,26 @@ type GLSampler<T extends GLPrim, D extends GLSamplerDimension> = T extends GLTyp
 type GLVec<T extends GLPrim, N extends 2 | 3 | 4> = `${T}vec${N}`;
 type MatCols = 2 | 3 | 4;
 type MatRows = 2 | 3 | 4 | undefined;
-type GLMat<COL extends MatCols, ROW extends MatRows> = ROW extends undefined
-    ? `mat${COL}`
-    : `mat${COL}x${ROW}`;
+type GLMat<COL extends MatCols, ROW extends MatRows> = ROW extends undefined ? `mat${COL}` : `mat${COL}x${ROW}`;
 
-type GLStruct = {
-    name: string & { __isStructName: true };
-    props: Record<string, GLArray<Embeddable, number, number | undefined> | Embeddable>;
-};
+type GLPropType = Embeddable | GLArray<Embeddable, number, number | undefined>;
 
-type Embeddable = GLStruct['name'] | GLPrim | GLSampler<GLPrim, GLSamplerDimension> | GLVec<GLPrim, 2 | 3 | 4> | GLMat<MatCols, MatRows>;
-type GLArray<T extends Embeddable, X extends number, Y extends number | undefined> = Y extends undefined
-    ? T extends GLStruct
-        ? `${T['name']}[${X}]`
-        : T extends Embeddable
-          ? `${T}[${X}, ${Y}]`
-          : never
-    : Y extends number
-      ? T extends GLStruct
-          ? `${T['name']}[${X}, ${Y}]`
-          : T extends Embeddable
-            ? `${T}[${X}, ${Y}]`
-            : never
-      : never;
+type GLPropName = string & { __isPropName: true };
+type GLStructDef = Record<GLPropName, GLPropType>;
+type GLStructName = string & { __isStructName: true };
+type GLStructsDict = Record<GLStructName, GLStructDef>;
 
-type Uniform = {
-    id: string & { __isUniformId: true };
-    type: Embeddable | GLArray<Embeddable, number, number | undefined>;
-}
+type Embeddable =
+    | GLStructName
+    | GLPrim
+    | GLSampler<GLPrim, GLSamplerDimension>
+    | GLVec<GLPrim, 2 | 3 | 4>
+    | GLMat<MatCols, MatRows>;
+
+type GLArray<T extends Embeddable, X extends number, Y extends number | undefined> = (Y extends undefined
+    ? `[${X}]`
+    : `[${X}, ${Y}]`) & { __isArray: true; __type: T };
+
+type UniformsDict = Record<string & { __isUniformId: true }, GLPropType>;
+
+type Concrete = GLArray<GLPrim.Float, 1, 1>;
